@@ -14,10 +14,11 @@
 WiFiClientSecure net = WiFiClientSecure();
 PubSubClient client(net);
 
+#define LED_BUILTIN 2
 // Ultrasonic sensor
 long duration, cm;
-#define ECHO 2
-#define TRIG 0
+#define ECHO 4
+#define TRIG 15
 
 unsigned long lastMillis = 0;
 time_t now;
@@ -33,7 +34,7 @@ void connectAWS()
   while (WiFi.status() != WL_CONNECTED)
   {
     Serial.print(".");
-    delay(500);
+    //delay(500);
   }
 
   // Configure WiFiClientSecure to use the AWS IoT device credentials
@@ -52,7 +53,7 @@ void connectAWS()
 
   while (!client.connect(THINGNAME)) {
     Serial.print(".");
-    delay(100);
+    //delay(100);
   }
 
   if (!client.connected()) {
@@ -65,6 +66,7 @@ void connectAWS()
   //client.subscribe(AWS_IOT_SUBSCRIBE_TOPIC);
 
   Serial.println(" AWS IoT Connected!");
+  //digitalWrite(LED_BUILTIN, HIGH);
 
 }
 
@@ -100,9 +102,12 @@ void publishMessage()
 void setup()
 {
   Serial.begin(115200);
-  delay(1000);
+  // Delay to start the serial monitor comment if your not testing
+  //delay(1000);
   pinMode(TRIG, OUTPUT);
   pinMode(ECHO, INPUT);
+
+  //pinMode(LED_BUILTIN, OUTPUT); 
 
   connectAWS();
 
@@ -111,6 +116,7 @@ void setup()
   
   // Deep Sleep 10 seconds
   deepSleep();
+  //digitalWrite(LED_BUILTIN, LOW);
 }
 
 void loop()
