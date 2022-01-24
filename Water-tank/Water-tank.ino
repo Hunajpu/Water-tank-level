@@ -34,7 +34,11 @@ void connectAWS()
   while (WiFi.status() != WL_CONNECTED)
   {
     Serial.print(".");
-    //delay(500);
+    delay(50);
+    if(millis()>20000)
+    {
+      deepSleep();
+    }
   }
 
   // Configure WiFiClientSecure to use the AWS IoT device credentials
@@ -53,7 +57,7 @@ void connectAWS()
 
   while (!client.connect(THINGNAME)) {
     Serial.print(".");
-    //delay(100);
+    delay(50);
   }
 
   if (!client.connected()) {
@@ -66,7 +70,7 @@ void connectAWS()
   //client.subscribe(AWS_IOT_SUBSCRIBE_TOPIC);
 
   Serial.println(" AWS IoT Connected!");
-  //digitalWrite(LED_BUILTIN, HIGH);
+  digitalWrite(LED_BUILTIN, HIGH);
 
 }
 
@@ -107,7 +111,7 @@ void setup()
   pinMode(TRIG, OUTPUT);
   pinMode(ECHO, INPUT);
 
-  //pinMode(LED_BUILTIN, OUTPUT); 
+  pinMode(LED_BUILTIN, OUTPUT); 
 
   connectAWS();
 
@@ -115,8 +119,9 @@ void setup()
   publishMessage();
   
   // Deep Sleep 10 seconds
+  
+  digitalWrite(LED_BUILTIN, LOW);
   deepSleep();
-  //digitalWrite(LED_BUILTIN, LOW);
 }
 
 void loop()
