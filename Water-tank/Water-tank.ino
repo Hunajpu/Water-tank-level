@@ -7,7 +7,6 @@
 #define uS_TO_S_FACTOR 1000000ULL  /* Conversion factor for micro seconds to seconds */
 #define TIME_TO_SLEEP  10        /* Time ESP32 will go to sleep (in seconds) */
 #define AWS_IOT_PUBLISH_TOPIC   "esp8266/pub"
-//#define AWS_IOT_SUBSCRIBE_TOPIC "esp8266/sub"
 
 //ADC_MODE(ADC_VCC); // TODO check if applays to ESP32
 
@@ -16,7 +15,7 @@ PubSubClient client(net);
 
 #define LED_BUILTIN 2
 // Ultrasonic sensor
-long duration, cm;
+long avgCm;
 #define ECHO 4
 #define TRIG 15
 
@@ -35,7 +34,7 @@ void connectAWS()
   {
     Serial.print(".");
     delay(50);
-    if(millis()>20000)
+    if(millis()>10000)
     {
       deepSleep();
     }
@@ -77,11 +76,9 @@ void connectAWS()
 unsigned long previousMillis = 0;
 const long interval = 5000;
 
-void publishMessage()
+long readSensor()
 {
-  StaticJsonDocument<200> doc;
-  // Getting sensor data
-  Serial.println(F("\nReading ultrasonic sensor"));
+  long duration, cm;
   duration, cm = 0;
   digitalWrite(TRIG, LOW);
   delayMicroseconds(2);
@@ -93,9 +90,31 @@ void publishMessage()
   Serial.print(cm);
   Serial.print("cm");
   Serial.println();
+  return cm;
+}
 
+void publishMessage()
+{
+  StaticJsonDocument<200> doc;
+  // Getting sensor data
+  Serial.println(F("\nReading ultrasonic sensor"));
+  avgCm = 0;
+  // Read sensor 3 times and get the avg value
+  int validReadings = 0;
+  long tempReading = 0;
+  for(int i = 0; i<3; i++)
+  {
+    tempReading = readSensor();
+    avgCm += tempReading;
+    validReadings += tempReading>0 ? 1 : 0;
+    delay(10);
+  }
+  avgCm /= validReadings;
   doc["time"] = millis();
-  doc["water-level"] = cm;
+  doc["water-level"] = avgCm;
+  Serial.print(avgCm);
+  Serial.print("avgCm");
+  Serial.println();
   //doc["voltage"]=ESP.getVcc();
   char jsonBuffer[512];
   serializeJson(doc, jsonBuffer); // print to client
